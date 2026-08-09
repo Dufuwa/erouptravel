@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { GoogleAuthProvider, getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut as firebaseSignOut } from "firebase/auth";
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
 import { clearIndexedDbPersistence, terminate } from "firebase/firestore";
 import { getFirebaseAuth, getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase/client";
 import type { AppUser } from "@/types/app";
@@ -30,7 +30,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (!auth) return;
-    getRedirectResult(auth).catch(() => undefined);
     return onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser ? toAppUser(nextUser) : null);
       setLoading(false);
@@ -42,17 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
-    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (mobile) await signInWithRedirect(auth, provider);
-    else {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        const code = (error as { code?: string }).code;
-        if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") await signInWithRedirect(auth, provider);
-        else throw error;
-      }
-    }
+    await signInWithPopup(auth, provider);
   }, []);
 
   const signOut = useCallback(async () => {
