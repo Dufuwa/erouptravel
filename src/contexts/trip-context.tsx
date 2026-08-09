@@ -52,12 +52,16 @@ export function TripProvider({ children }: { children: ReactNode }) {
   const [workspace, setWorkspace] = useState<TripWorkspace>(seedWorkspace);
   const [loading, setLoading] = useState(isFirebaseConfigured);
   const [refreshing, setRefreshing] = useState(false);
-  const [online, setOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
-  const [trustedDevice, setTrustedState] = useState(() => typeof window === "undefined" ? false : localStorage.getItem("erouptravel:trusted-device") === "true");
+  const [online, setOnline] = useState(true);
+  const [trustedDevice, setTrustedState] = useState(false);
 
   useEffect(() => {
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);
+    queueMicrotask(() => {
+      setOnline(navigator.onLine);
+      setTrustedState(localStorage.getItem("erouptravel:trusted-device") === "true");
+    });
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     return () => {
