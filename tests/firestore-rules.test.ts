@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/rules-unit-testing";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { readFileSync } from "node:fs";
@@ -35,6 +35,6 @@ describe("Firestore member rules", () => {
     await assertFails(updateDoc(doc(memberDb, tripPath), { memberEmails: ["member@example.com"] }));
     await assertSucceeds(updateDoc(doc(ownerDb, tripPath), { memberEmails: ["owner@example.com"] }));
     await assertFails(updateDoc(doc(ownerDb, tripPath), { memberEmails: [] }));
-    await expect(assertFails(updateDoc(doc(ownerDb, tripPath), { ownerEmail: "attacker@example.com" }))).resolves.toBeUndefined();
+    await assertFails(updateDoc(doc(ownerDb, tripPath), { ownerEmail: "attacker@example.com" }));
   });
 });
