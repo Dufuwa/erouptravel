@@ -1,4 +1,21 @@
-import type { BookingStatus, Priority, TicketStatus, TodoCategory, TodoStatus, TransportType } from "@/types/types";
+import type { BookingStatus, PlaceIdeaStatus, PlaceType, Priority, TicketStatus, TodoCategory, TodoStatus, TransportType } from "@/types/types";
+
+export const placeTypeLabels: Record<PlaceType, string> = {
+  sight: "景點",
+  food: "餐飲",
+  shopping: "購物",
+  hotel: "住宿",
+  transport: "交通",
+  viewpoint: "觀景",
+  activity: "活動",
+  other: "其他",
+};
+
+export const placeIdeaStatusLabels: Record<PlaceIdeaStatus, string> = {
+  want_to_go: "想去",
+  considering: "考慮中",
+  skipped: "略過",
+};
 
 export const todoCategoryLabels: Record<TodoCategory, string> = {
   accommodation: "住宿",

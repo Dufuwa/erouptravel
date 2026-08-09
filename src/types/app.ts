@@ -2,6 +2,7 @@ import type {
   Accommodation,
   City,
   DayTransport,
+  PlaceIdea,
   Ticket,
   Todo,
   TransportBooking,
@@ -17,6 +18,7 @@ export interface TripWorkspace {
   accommodations: Accommodation[];
   transportBookings: TransportBooking[];
   tickets: Ticket[];
+  placeIdeas: PlaceIdea[];
 }
 
 export type CollectionName =
@@ -25,7 +27,8 @@ export type CollectionName =
   | "todos"
   | "accommodations"
   | "transportBookings"
-  | "tickets";
+  | "tickets"
+  | "placeIdeas";
 
 export type CollectionEntity =
   | City
@@ -33,7 +36,8 @@ export type CollectionEntity =
   | Todo
   | Accommodation
   | TransportBooking
-  | Ticket;
+  | Ticket
+  | PlaceIdea;
 
 export type NestedCollectionName = "places" | "transports";
 export type NestedEntity = TripDay["places"][number] | DayTransport;

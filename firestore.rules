@@ -60,6 +60,10 @@ service cloud.firestore {
       match /tickets/{ticketId} {
         allow read, create, update, delete: if isMember(tripId);
       }
+
+      match /placeIdeas/{ideaId} {
+        allow read, create, update, delete: if isMember(tripId);
+      }
     }
   }
 }

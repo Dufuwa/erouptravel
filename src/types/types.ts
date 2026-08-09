@@ -4,6 +4,8 @@ export type Priority = "high" | "medium" | "low";
 export type BookingStatus = "not_booked" | "booked" | "confirmed" | "cancelled";
 export type TicketStatus = "not_purchased" | "purchased";
 export type TransportType = "flight" | "train" | "bus" | "shuttle" | "rental_car" | "local_transport";
+export type PlaceType = "sight" | "food" | "shopping" | "hotel" | "transport" | "viewpoint" | "activity" | "other";
+export type PlaceIdeaStatus = "want_to_go" | "considering" | "skipped";
 
 export interface AuditFields {
   sortOrder?: number;
@@ -59,7 +61,7 @@ export interface Place extends AuditFields {
   name: string;
   englishName?: string;
   time?: string;
-  type?: "sight" | "food" | "shopping" | "hotel" | "transport" | "viewpoint" | "activity" | "other";
+  type?: PlaceType;
   address?: string;
   latitude?: number;
   longitude?: number;
@@ -67,6 +69,25 @@ export interface Place extends AuditFields {
   ticketId?: string;
   note?: string;
   mapQuery?: string;
+  googleMapsUrl?: string;
+  sourceIdeaId?: string;
+}
+
+export interface PlaceIdea extends AuditFields {
+  id: string;
+  name: string;
+  englishName?: string;
+  cityId?: string;
+  type: PlaceType;
+  status: PlaceIdeaStatus;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  durationMinutes?: number;
+  mapQuery?: string;
+  googleMapsUrl?: string;
+  note?: string;
+  scheduledDayIds: string[];
 }
 
 export interface DayTransport extends AuditFields {

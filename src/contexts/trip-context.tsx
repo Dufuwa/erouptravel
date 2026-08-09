@@ -4,9 +4,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { toast } from "sonner";
 import { seedWorkspace, TRIP_ID } from "@/data/seed";
 import { isFirebaseConfigured } from "@/lib/firebase/client";
-import { loadWorkspace, removeEntity, removeNestedEntity, saveEntity, saveNestedEntity, saveTrip } from "@/lib/firebase/repository";
+import { loadWorkspace, removeEntity, removeNestedEntity, saveEntity, saveNestedEntity, saveTrip, schedulePlaceIdea as schedulePlaceIdeaInFirestore } from "@/lib/firebase/repository";
 import type { CollectionEntity, CollectionName, NestedCollectionName, NestedEntity, TripWorkspace } from "@/types/app";
-import type { DayTransport, Place, Trip } from "@/types/types";
+import type { DayTransport, Place, PlaceIdea, Trip } from "@/types/types";
 import { useAuth } from "./auth-context";
 
 interface TripContextValue {
@@ -22,6 +22,7 @@ interface TripContextValue {
   deleteEntity: (name: CollectionName, entity: CollectionEntity) => Promise<void>;
   upsertNested: (dayId: string, name: NestedCollectionName, entity: NestedEntity) => Promise<void>;
   deleteNested: (dayId: string, name: NestedCollectionName, entity: NestedEntity) => Promise<void>;
+  schedulePlaceIdea: (idea: PlaceIdea, dayId: string) => Promise<void>;
   updateTrip: (patch: Partial<Trip>) => Promise<void>;
 }
 
@@ -118,12 +119,22 @@ export function TripProvider({ children }: { children: ReactNode }) {
   }, [assertWritable, persistLocal, refresh]);
 
   const deleteEntity = useCallback(async (name: CollectionName, entity: CollectionEntity) => {
-    assertWritable();
+    const currentUser = assertWritable();
+    if (name === "placeIdeas" && ((entity as PlaceIdea).scheduledDayIds?.length ?? 0) > 0) throw new Error("此收藏仍在行程中，請先移除所有排程後再刪除。");
     if (isFirebaseConfigured) {
-      await removeEntity(TRIP_ID, name, entity.id, entity.updatedAt);
+      await removeEntity(TRIP_ID, name, entity.id, currentUser, entity.updatedAt);
       await refresh();
     } else {
-      persistLocal((current) => ({ ...current, [name]: current[name].filter((item) => item.id !== entity.id) } as TripWorkspace));
+      persistLocal((current) => {
+        if (name !== "days") return { ...current, [name]: current[name].filter((item) => item.id !== entity.id) } as TripWorkspace;
+        const day = entity as TripWorkspace["days"][number];
+        const sourceIds = new Set(day.places.map((place) => place.sourceIdeaId).filter(Boolean));
+        return {
+          ...current,
+          days: current.days.filter((item) => item.id !== entity.id),
+          placeIdeas: current.placeIdeas.map((idea) => sourceIds.has(idea.id) ? { ...idea, scheduledDayIds: idea.scheduledDayIds.filter((dayId) => dayId !== entity.id) } : idea),
+        };
+      });
     }
   }, [assertWritable, persistLocal, refresh]);
 
@@ -136,30 +147,75 @@ export function TripProvider({ children }: { children: ReactNode }) {
       const next = withAudit(entity, currentUser);
       persistLocal((current) => ({
         ...current,
-        days: current.days.map((day) => day.id !== dayId ? day : {
-          ...day,
-          ...(name === "places"
-            ? { places: [...day.places.filter((item) => item.id !== entity.id), next as Place].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) }
-            : { transportation: [...(day.transportation ?? []).filter((item) => item.id !== entity.id), next as DayTransport].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) }),
+        days: current.days.map((day) => {
+          if (day.id !== dayId) return day;
+          if (name === "places") {
+            const previous = day.places.find((item) => item.id === entity.id);
+            const merged = { ...previous, ...next } as Place;
+            return { ...day, places: [...day.places.filter((item) => item.id !== entity.id), merged].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) };
+          }
+          const previous = (day.transportation ?? []).find((item) => item.id === entity.id);
+          const merged = { ...previous, ...next } as DayTransport;
+          return { ...day, transportation: [...(day.transportation ?? []).filter((item) => item.id !== entity.id), merged].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) };
         }),
       }));
     }
   }, [assertWritable, persistLocal, refresh]);
 
   const deleteNested = useCallback(async (dayId: string, name: NestedCollectionName, entity: NestedEntity) => {
-    assertWritable();
+    const currentUser = assertWritable();
     if (isFirebaseConfigured) {
-      await removeNestedEntity(TRIP_ID, dayId, name, entity.id, entity.updatedAt);
+      await removeNestedEntity(TRIP_ID, dayId, name, entity, currentUser, entity.updatedAt);
       await refresh();
     } else {
       persistLocal((current) => ({
         ...current,
+        placeIdeas: name === "places" && (entity as Place).sourceIdeaId
+          ? current.placeIdeas.map((idea) => idea.id === (entity as Place).sourceIdeaId ? { ...idea, scheduledDayIds: idea.scheduledDayIds.filter((item) => item !== dayId) } : idea)
+          : current.placeIdeas,
         days: current.days.map((day) => day.id !== dayId ? day : name === "places"
           ? { ...day, places: day.places.filter((item) => item.id !== entity.id) }
           : { ...day, transportation: (day.transportation ?? []).filter((item) => item.id !== entity.id) }),
       }));
     }
   }, [assertWritable, persistLocal, refresh]);
+
+  const schedulePlaceIdea = useCallback(async (idea: PlaceIdea, dayId: string) => {
+    const currentUser = assertWritable();
+    const day = workspace.days.find((item) => item.id === dayId);
+    if (!day) throw new Error("找不到選擇的行程日。");
+    if (idea.scheduledDayIds.includes(dayId)) throw new Error("這個景點已排入該日期。");
+    if (isFirebaseConfigured) {
+      await schedulePlaceIdeaInFirestore(TRIP_ID, dayId, idea, day.places.length, currentUser);
+      await refresh();
+    } else {
+      const now = new Date().toISOString();
+      const updatedBy = { uid: currentUser.uid, name: currentUser.displayName, email: currentUser.email };
+      const place: Place = {
+        id: idea.id,
+        name: idea.name,
+        englishName: idea.englishName,
+        type: idea.type,
+        address: idea.address,
+        latitude: idea.latitude,
+        longitude: idea.longitude,
+        durationMinutes: idea.durationMinutes,
+        mapQuery: idea.mapQuery,
+        googleMapsUrl: idea.googleMapsUrl,
+        note: idea.note,
+        sourceIdeaId: idea.id,
+        sortOrder: day.places.length,
+        createdAt: now,
+        updatedAt: now,
+        updatedBy,
+      };
+      persistLocal((current) => ({
+        ...current,
+        placeIdeas: current.placeIdeas.map((item) => item.id === idea.id ? { ...item, scheduledDayIds: [...item.scheduledDayIds, dayId], updatedAt: now, updatedBy } : item),
+        days: current.days.map((item) => item.id === dayId ? { ...item, places: [...item.places, place] } : item),
+      }));
+    }
+  }, [assertWritable, persistLocal, refresh, workspace.days]);
 
   const updateTrip = useCallback(async (patch: Partial<Trip>) => {
     const currentUser = assertWritable();
@@ -177,7 +233,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
     if (isFirebaseConfigured) window.location.reload();
   }, []);
 
-  const value = useMemo(() => ({ workspace, loading, refreshing, online, trustedDevice, firebaseMode: isFirebaseConfigured, refresh, setTrustedDevice, upsertEntity, deleteEntity, upsertNested, deleteNested, updateTrip }), [workspace, loading, refreshing, online, trustedDevice, refresh, setTrustedDevice, upsertEntity, deleteEntity, upsertNested, deleteNested, updateTrip]);
+  const value = useMemo(() => ({ workspace, loading, refreshing, online, trustedDevice, firebaseMode: isFirebaseConfigured, refresh, setTrustedDevice, upsertEntity, deleteEntity, upsertNested, deleteNested, schedulePlaceIdea, updateTrip }), [workspace, loading, refreshing, online, trustedDevice, refresh, setTrustedDevice, upsertEntity, deleteEntity, upsertNested, deleteNested, schedulePlaceIdea, updateTrip]);
   return <TripContext.Provider value={value}>{children}</TripContext.Provider>;
 }
 

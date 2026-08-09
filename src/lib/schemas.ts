@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isGoogleMapsUrl } from "./utils";
 
 const optionalText = z.string().trim().optional();
 const requiredText = z.string().trim().min(1, "此欄位為必填");
@@ -10,6 +11,19 @@ export const placeSchema = z.object({
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "請使用 HH:mm 格式").or(z.literal("")).optional(),
   type: z.enum(["sight", "food", "shopping", "hotel", "transport", "viewpoint", "activity", "other"]),
   mapQuery: optionalText,
+  note: optionalText,
+});
+
+export const placeIdeaSchema = z.object({
+  name: requiredText,
+  englishName: optionalText,
+  cityId: optionalText,
+  type: z.enum(["sight", "food", "shopping", "hotel", "transport", "viewpoint", "activity", "other"]),
+  status: z.enum(["want_to_go", "considering", "skipped"]),
+  address: optionalText,
+  durationMinutes: z.number().int().min(0).max(1440).optional(),
+  mapQuery: optionalText,
+  googleMapsUrl: z.string().trim().refine((value) => !value || isGoogleMapsUrl(value), "請貼上有效的 Google Maps HTTPS 網址").optional(),
   note: optionalText,
 });
 

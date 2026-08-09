@@ -39,6 +39,7 @@ async function seed() {
     ["accommodations", workspace.accommodations],
     ["transportBookings", workspace.transportBookings],
     ["tickets", workspace.tickets],
+    ["placeIdeas", workspace.placeIdeas],
   ] as const) {
     for (const item of items) batch.set(tripRef.collection(name).doc(item.id), { ...clean(item as unknown as Record<string, unknown>, ["id", "createdAt", "updatedAt"]), createdAt: now, updatedAt: now }, { merge: true });
   }

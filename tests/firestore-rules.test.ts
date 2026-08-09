@@ -25,6 +25,7 @@ describe("Firestore member rules", () => {
     const db = testEnv.authenticatedContext("member", { email: "member@example.com" }).firestore();
     await assertSucceeds(getDoc(doc(db, tripPath)));
     await assertSucceeds(setDoc(doc(db, `${tripPath}/todos/todo-1`), { title: "Book train" }));
+    await assertSucceeds(setDoc(doc(db, `${tripPath}/placeIdeas/idea-1`), { name: "Museum", scheduledDayIds: [] }));
     await assertSucceeds(setDoc(doc(db, `${tripPath}/days/day-1/places/place-1`), { name: "Museum" }));
     await assertFails(setDoc(doc(db, `${tripPath}/private/secret-1`), { value: "not allowed" }));
     await assertFails(setDoc(doc(db, `${tripPath}/todos/todo-1/private/secret-1`), { value: "not allowed" }));

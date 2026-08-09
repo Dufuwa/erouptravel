@@ -14,7 +14,8 @@
     "test:rules": "firebase emulators:exec --only firestore \"vitest run --config vitest.rules.config.ts\"",
     "test:e2e": "playwright test",
     "seed": "tsx scripts/seed-firestore.ts",
-    "verify:firebase": "tsx scripts/verify-firestore.ts"
+    "verify:firebase": "tsx scripts/verify-firestore.ts",
+    "migrate:place-ideas": "tsx scripts/migrate-place-ideas.ts"
   },
   "dependencies": {
     "clsx": "latest",

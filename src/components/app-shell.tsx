@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, CalendarDays, CheckSquare2, CloudOff, LogOut, RefreshCw, Settings, TicketCheck } from "lucide-react";
+import { BookOpen, CalendarDays, CheckSquare2, CloudOff, Heart, LogOut, RefreshCw, Settings, TicketCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -13,6 +13,7 @@ import { AuthGuard } from "./auth-guard";
 const navigation = [
   { href: "today", label: "總覽", icon: CalendarDays },
   { href: "itinerary", label: "行程", icon: BookOpen },
+  { href: "places", label: "收藏", icon: Heart },
   { href: "todos", label: "待辦", icon: CheckSquare2 },
   { href: "bookings", label: "預訂", icon: TicketCheck },
   { href: "settings", label: "設定", icon: Settings },
@@ -32,6 +33,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     {!online && <div className="sticky top-0 z-20 flex items-center justify-center gap-2 bg-[#8b5514] px-4 py-2 text-center text-xs font-bold text-white"><CloudOff size={14} />離線唯讀模式 · 顯示最近快取資料</div>}
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#e0e3de] bg-[#f7f8f5]/92 px-4 backdrop-blur md:hidden"><div><div className="text-[10px] font-extrabold tracking-[.12em] text-[#1f6a4a]">2027 CENTRAL EUROPE</div><div className="text-sm font-black">{workspace.trip.title}</div></div><Button variant="ghost" size="icon" onClick={() => void refresh()} loading={refreshing} aria-label="重新整理"><RefreshCw size={18} /></Button></header>
     <main>{children}</main>
-    <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-[#dfe2dd] bg-[#fbfcfa]/96 px-1 pb-[max(6px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur md:hidden">{navigation.map(({ href, label, icon: Icon }) => { const active = pathname.endsWith(`/${href}`); return <Link key={href} href={`${base}/${href}`} className={cn("flex min-w-0 flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] font-bold", active ? "text-[#1f6a4a]" : "text-[#78817c]")}><Icon size={19} strokeWidth={active ? 2.6 : 2} />{label}</Link>; })}</nav>
+    <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-[#dfe2dd] bg-[#fbfcfa]/96 px-1 pb-[max(6px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur md:hidden">{navigation.map(({ href, label, icon: Icon }) => { const active = pathname.endsWith(`/${href}`); return <Link key={href} href={`${base}/${href}`} className={cn("flex min-w-0 flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] font-bold", active ? "text-[#1f6a4a]" : "text-[#78817c]")}><Icon size={19} strokeWidth={active ? 2.6 : 2} />{label}</Link>; })}</nav>
   </div></AuthGuard>;
 }
