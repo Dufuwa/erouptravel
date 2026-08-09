@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.token.email is string;
+    }
+
+    function tripDoc(tripId) {
+      return get(/databases/$(database)/documents/trips/$(tripId));
+    }
+
+    function isMember(tripId) {
+      return signedIn() && request.auth.token.email in tripDoc(tripId).data.memberEmails;
+    }
+
+    function isOwner(tripId) {
+      return signedIn() && request.auth.token.email == tripDoc(tripId).data.ownerEmail;
+    }
+
+    match /trips/{tripId} {
+      allow read: if signedIn() && request.auth.token.email in resource.data.memberEmails;
+      allow create, delete: if false;
+      allow update: if isMember(tripId)
+        && request.resource.data.ownerEmail == resource.data.ownerEmail
+        && (
+          request.resource.data.memberEmails == resource.data.memberEmails
+          || isOwner(tripId)
+        );
+
+      match /{collectionName}/{documentId} {
+        allow read, create, update, delete: if isMember(tripId);
+
+        match /{nestedCollection}/{nestedId} {
+          allow read, create, update, delete: if isMember(tripId);
+        }
+      }
+    }
+  }
+}
