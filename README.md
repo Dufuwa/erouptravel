@@ -24,7 +24,7 @@ npm run dev
 2. Authentication 啟用 Google provider。
 3. 將 Firebase Web 設定填入 `.env.local`。
 4. 以 Firebase CLI 部署規則：`npx firebase-tools deploy --only firestore:rules,firestore:indexes --project <project-id>`。
-5. 在本機暫時設定 `FIREBASE_SERVICE_ACCOUNT_JSON` 與 `FIREBASE_PROJECT_ID`，執行 `npm run seed`。
+5. 執行 `gcloud auth application-default login` 後執行 `npm run seed`；CI 或無互動環境也可暫時設定 `FIREBASE_SERVICE_ACCOUNT_JSON`。
 6. 將 Vercel production domain 加入 Firebase Authentication Authorized domains。
 
 Service account JSON 僅用於一次性匯入，禁止提交或放入前端／Vercel。

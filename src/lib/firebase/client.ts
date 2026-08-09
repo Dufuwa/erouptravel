@@ -19,7 +19,9 @@ const config = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-export const isFirebaseConfigured = Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
+const isE2eDemo = process.env.NEXT_PUBLIC_E2E_DEMO === "true";
+
+export const isFirebaseConfigured = !isE2eDemo && Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;

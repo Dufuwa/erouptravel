@@ -23,17 +23,42 @@ service cloud.firestore {
       allow create, delete: if false;
       allow update: if isMember(tripId)
         && request.resource.data.ownerEmail == resource.data.ownerEmail
+        && request.resource.data.ownerEmail in request.resource.data.memberEmails
         && (
           request.resource.data.memberEmails == resource.data.memberEmails
           || isOwner(tripId)
         );
 
-      match /{collectionName}/{documentId} {
+      match /cities/{cityId} {
+        allow read, create, update, delete: if isMember(tripId);
+      }
+
+      match /days/{dayId} {
         allow read, create, update, delete: if isMember(tripId);
 
-        match /{nestedCollection}/{nestedId} {
+        match /places/{placeId} {
           allow read, create, update, delete: if isMember(tripId);
         }
+
+        match /transports/{transportId} {
+          allow read, create, update, delete: if isMember(tripId);
+        }
+      }
+
+      match /todos/{todoId} {
+        allow read, create, update, delete: if isMember(tripId);
+      }
+
+      match /accommodations/{accommodationId} {
+        allow read, create, update, delete: if isMember(tripId);
+      }
+
+      match /transportBookings/{bookingId} {
+        allow read, create, update, delete: if isMember(tripId);
+      }
+
+      match /tickets/{ticketId} {
+        allow read, create, update, delete: if isMember(tripId);
       }
     }
   }

@@ -100,10 +100,17 @@ export async function removeEntity(tripId: string, collectionName: CollectionNam
   const db = getFirebaseDb();
   if (!db) throw new Error("Firebase 尚未設定");
   const reference = doc(db, "trips", tripId, collectionName, id);
+  const childReferences = collectionName === "days"
+    ? (await Promise.all([
+        getDocs(collection(db, "trips", tripId, "days", id, "places")),
+        getDocs(collection(db, "trips", tripId, "days", id, "transports")),
+      ])).flatMap((snapshot) => snapshot.docs.map((item) => item.ref))
+    : [];
   await runTransaction(db, async (transaction) => {
     const existing = await transaction.get(reference);
     const remoteUpdatedAt = existing.exists() ? (normalize(existing.data().updatedAt) as string | undefined) : undefined;
     if (expectedUpdatedAt && remoteUpdatedAt && expectedUpdatedAt !== remoteUpdatedAt) throw new ConflictError();
+    childReferences.forEach((child) => transaction.delete(child));
     transaction.delete(reference);
   });
 }

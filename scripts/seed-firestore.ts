@@ -1,14 +1,13 @@
-import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { createSeedWorkspace, OWNER_EMAIL, TRIP_ID } from "../src/data/seed";
 
-function credentials() {
+function credential() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!raw) throw new Error("請先設定 FIREBASE_SERVICE_ACCOUNT_JSON（完整 service account JSON）。");
-  return JSON.parse(raw.replace(/^'|'$/g, ""));
+  return raw ? cert(JSON.parse(raw.replace(/^'|'$/g, ""))) : applicationDefault();
 }
 
-const app = getApps()[0] ?? initializeApp({ credential: cert(credentials()), projectId: process.env.FIREBASE_PROJECT_ID });
+const app = getApps()[0] ?? initializeApp({ credential: credential(), projectId: process.env.FIREBASE_PROJECT_ID ?? "erouptravel" });
 const db = getFirestore(app);
 const workspace = createSeedWorkspace();
 const now = FieldValue.serverTimestamp();
