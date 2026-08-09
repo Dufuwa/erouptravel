@@ -11,7 +11,7 @@ import { Button } from "./ui/button";
 import { AuthGuard } from "./auth-guard";
 
 const navigation = [
-  { href: "today", label: "今日", icon: CalendarDays },
+  { href: "today", label: "總覽", icon: CalendarDays },
   { href: "itinerary", label: "行程", icon: BookOpen },
   { href: "todos", label: "待辦", icon: CheckSquare2 },
   { href: "bookings", label: "預訂", icon: TicketCheck },

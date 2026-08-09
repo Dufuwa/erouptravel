@@ -10,5 +10,5 @@ test("展示模式可瀏覽主要頁面", async ({ page }) => {
 test("手機版顯示底部導覽", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile");
   await page.goto("/trip/central-europe-2027/today");
-  await expect(page.locator("nav").filter({ hasText: "今日" }).last()).toBeVisible();
+  await expect(page.locator("nav").filter({ hasText: "總覽" }).last()).toBeVisible();
 });
