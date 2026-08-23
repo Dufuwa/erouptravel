@@ -3,7 +3,7 @@
 import { BedDouble, CalendarCheck2, CheckCircle2, ChevronRight, Clock3, Navigation, RefreshCw, TicketCheck } from "lucide-react";
 import Link from "next/link";
 import { useTrip } from "@/contexts/trip-context";
-import { getTodayState, formatTripDate, formatWeekday } from "@/lib/date";
+import { getTodayState, formatTripDate } from "@/lib/date";
 import { buildGoogleMapsUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,7 @@ export default function TodayPage() {
   const totalBookings = accommodations.length + transportBookings.length + tickets.length;
 
   return <div className="page-wrap">
-    <header className="page-header"><div><span className="eyebrow">TRIP OVERVIEW</span><h1 className="page-title">{state.phase === "before" ? "準備出發" : state.phase === "during" ? `第 ${state.day?.dayNumber} 天` : "旅程回顧"}</h1><p className="page-description">{state.phase === "before" ? `距離布拉格還有 ${state.countdown} 天，把重要事項一件件完成。` : state.phase === "during" ? `${state.day ? `${formatTripDate(state.day.date)} ${formatWeekday(state.day.date)}` : state.today} · ${state.day?.title ?? "自由探索"}` : "17 天的中歐旅程已完成。"}</p></div><Button variant="secondary" className="hidden md:inline-flex" loading={refreshing} onClick={() => void refresh()}><RefreshCw size={16} />重新整理</Button></header>
+    <header className="page-header"><div><span className="eyebrow">TRIP OVERVIEW</span><h1 className="page-title">{state.phase === "before" ? "準備出發" : state.phase === "during" ? `第 ${state.day?.dayNumber} 天` : "旅程回顧"}</h1><p className="page-description">{state.phase === "before" ? `距離布拉格還有 ${state.countdown} 天，把重要事項一件件完成。` : state.phase === "during" ? `${state.day ? formatTripDate(state.day.date) : state.today} · ${state.day?.title ?? "自由探索"}` : "17 天的中歐旅程已完成。"}</p></div><Button variant="secondary" className="hidden md:inline-flex" loading={refreshing} onClick={() => void refresh()}><RefreshCw size={16} />重新整理</Button></header>
 
     <section className="relative overflow-hidden rounded-[26px] bg-[#1d5e43] px-6 py-7 text-white shadow-[var(--shadow)] sm:px-9 sm:py-9">
       <div className="absolute -top-28 -right-20 h-72 w-72 rounded-full border-[45px] border-white/5" />

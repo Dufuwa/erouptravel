@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { placeIdeaSchema } from "@/lib/schemas";
 import { placeIdeaStatusLabels, placeTypeLabels } from "@/lib/labels";
 import { createId } from "@/lib/utils";
-import { formatTripDate, formatWeekday } from "@/lib/date";
+import { formatTripDate } from "@/lib/date";
 import type { City, PlaceIdea, TripDay } from "@/types/types";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
@@ -137,7 +137,7 @@ export function SchedulePlaceIdeaDialog({
         const selected = selectedDayId === day.id;
         return <button key={day.id} type="button" disabled={scheduled} onClick={() => setSelectedDayId(day.id)} className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${selected ? "border-[#1f6a4a] bg-[#e2eee7]" : "border-[#dfe2dd] bg-white hover:border-[#9ab9a8]"} disabled:cursor-not-allowed disabled:opacity-55`}>
           <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${selected ? "bg-[#1f6a4a] text-white" : "bg-[#edf0ec] text-[#58645d]"}`}>{selected || scheduled ? <Check size={16} /> : day.dayNumber}</span>
-          <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">{day.title}</span><span className="mt-0.5 block text-xs text-[#758079]">{cityById[day.cityId]?.name ?? day.cityId}・{formatTripDate(day.date)} {formatWeekday(day.date)}</span></span>
+          <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">{day.title}</span><span className="mt-0.5 block text-xs text-[#758079]">{cityById[day.cityId]?.name ?? day.cityId}・{formatTripDate(day.date)}</span></span>
           {scheduled && <span className="text-xs font-bold text-[#1f6a4a]">已排</span>}
         </button>;
       })}

@@ -32,7 +32,3 @@ export function getTodayState(trip: Trip, days: TripDay[], now = new Date()) {
 export function formatTripDate(date: string) {
   return format(parseISO(date), "M月d日");
 }
-
-export function formatWeekday(date: string) {
-  return new Intl.DateTimeFormat("zh-TW", { weekday: "short", timeZone: "UTC" }).format(parseISO(date));
-}
